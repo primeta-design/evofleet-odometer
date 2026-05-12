@@ -4,17 +4,34 @@ from google.oauth2.service_account import Credentials
 from datetime import datetime
 import time
 import os
+import json
 
 # ================== SOZLAMALAR ==================
 EVO_API_KEY = os.getenv("EVO_API_KEY")
 USDOT_NUMBER = os.getenv("USDOT_NUMBER")
-
-SPREADSHEET_NAME = "COMPANIES OIL CHANGE"   # Google Sheet nomi
-SHEET_NAME = "B1-TRACKING"                  # Varaq nomi
+SPREADSHEET_NAME = os.getenv("SPREADSHEET_NAME", "COMPANIES OIL CHANGE")
+SHEET_NAME = "B1-TRACKING"
 
 print("🚛 EVO ELD Odometer Updater ishga tushdi...")
 
+# Google Credentials ni Environment dan olish
+def get_google_creds():
+    creds_json = os.getenv("GOOGLE_CREDENTIALS")
+    if not creds_json:
+        print("❌ GOOGLE_CREDENTIALS topilmadi!")
+        return None
+    try:
+        creds_dict = json.loads(creds_json)
+        return Credentials.from_service_account_info(creds_dict)
+    except Exception as e:
+        print("❌ JSON parse xatosi:", e)
+        return None
+
 def get_eld_data():
+    if not EVO_API_KEY or not USDOT_NUMBER:
+        print("❌ EVO_API_KEY yoki USDOT_NUMBER sozlanmagan!")
+        return []
+    
     url = f"https://read.evoeld.com/api/v2/units-by-usdot/{USDOT_NUMBER}"
     headers = {
         "x-api-key": EVO_API_KEY,
@@ -34,8 +51,11 @@ def get_eld_data():
         return []
 
 def update_odometer(units):
+    creds = get_google_creds()
+    if not creds:
+        return
+    
     try:
-        creds = Credentials.from_service_account_file("service_account.json")
         client = gspread.authorize(creds)
         sheet = client.open(SPREADSHEET_NAME).worksheet(SHEET_NAME)
         
@@ -49,11 +69,10 @@ def update_odometer(units):
             if not truck_no or not odometer:
                 continue
                 
-            # B ustunda (Unit raqami) qidirish
             for i, row in enumerate(data):
                 if len(row) > 1 and str(row[1]).strip() == truck_no:
                     try:
-                        sheet.update_cell(i+1, 7, int(odometer))  # G ustun = Current Mileage
+                        sheet.update_cell(i+1, 7, int(odometer))  # G ustun
                         updated += 1
                         print(f"✅ Updated: {truck_no} → {odometer}")
                     except:
@@ -65,10 +84,10 @@ def update_odometer(units):
     except Exception as e:
         print("❌ Sheet yangilashda xato:", e)
 
-# ===================== MAIN LOOP =====================
+# ===================== MAIN =====================
 if __name__ == "__main__":
     while True:
         units = get_eld_data()
         if units:
             update_odometer(units)
-        time.sleep(60)   # Har 1 daqiqada
+        time.sleep(60)
