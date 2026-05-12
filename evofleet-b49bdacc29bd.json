@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "evofleet",
+  "private_key_id": "b49bdacc29bd6cd56c0f73b85a55f0bb5d7ab3fa",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDW2TWZ/n7iplNw\n1Y3W+g/nqAu4PSIIkPhm5C6DVzjPeFTWJFuBfWuCCvZ24IFmPStjhLiSKnMLO1xw\ndPRore3aHFdX07HBp7dpQr6dIKMX8xMBX7+NZU26qk/d/dDyMFT2XgkZVm2jc6tH\nj5HYyib9QQJpiBzKEGGW+Os4193WaF18AygGo+9oaAHeSU9xCrHqYanMLuZwPg/w\nSJq57zI78s8SzB2Eor/f9fCJQwpVhUjvHg5AlY2VKlt2f0UrGtvQAkJy2DUv9Ofc\nYLrdYBORiI8pbvCBe5uUcbKqKmX9DQiYLCjmGsc9YYxtsrMYuKJn3+yVjpZhPoNz\naaWQnvoJAgMBAAECggEAAPe3I+uUrbeluOSKqtUIfPjG82b5wBkgYpzqJWGfWgvc\nMfS1oXaA+p51sAu1ztHoCp7ekptKAQXHlk1oi7omJUKAat8DYMW9GpEYOQPxyBn/\nqWoW0O+2Xb4GSw/UFkB9JCOV8z0Y6aYL4kV1bjOxi5gfMdN7nGCzgnxk2XuGE8D1\ndgEb7ObgUjYlkK65TVAt0Td90StshwIt9ntqRY1OSMq7SeqhCJ2oBCJnR0VLMRX0\nggJzpDMyOBObDaSeayd49oFZfa/ER8r/ACPM0TG0lSnMakIpZ6QtOdG0GwhE3QfR\n5+/jG+InJXVszlEc6EA1k/dHb0co9fwZ4u+npiWB8wKBgQD7rpk0nu3ijV+XMAhy\noMA37JMqnjCJlXAGp+RFZ27N2aYWXVqcL/m5D3g8NxNM6IarMYyfthQz1+X06uJ3\n5BxT8/sdUehBGs2B3YWQdk2rgT85Z0kcKPyf3t/+qs+W2jwkvzLmPgk3QB/0bXlN\nMyI/7t5B9M/ja5YDQdERGxuHIwKBgQDaiNX9zaWqxhnP3rdoavojNOblhtP7oWIU\n2eqLs7ebqYywDUHYt15S4qEx7fM0o/DyemMLZFcROiqzzxz3GtsonpydOCGQJWST\n/Utf5DvMD/S0Y9V2ROky7nBgiBB0rSMM0lvy6zPLl5MuH86GZPr/A5xHIJcsi8sD\n/fSVyaai4wKBgAzsMReflW1Nfvv/Tl+8W0JD1maYyrs1vhPJaRIbNnhBVaLOVkmw\nuOzEm5LT7RzEz61YlPTaX30t97O0n74yKzYwT9N4kilNnAGwAxygxmoo77sdz4Yv\noJEA25Vy5cfEGtR0MMPbqZN5qmpdeJ37IyYPOMBANrBhpMk0Bu0O7EHrAoGAbQdi\nBCtqoQYO8LfEN5NP0urc29zlvCArKA4Ex8hVLZNsvpUOqgnqRF4PYDLAaR3143QO\nICviiJTFo0oMwHgkqWJg7suHazxMrszrox7ieo/nXWyFnmkJE8EEThT0aNHMr+Pv\nvgV8pPGtm5CA4GpXE44AlTf8VFw2YHp+YZDm01MCgYEA+Lvkg1va983h/UDxqTDi\niLRakiSKOcSZOgZ9kqUh0w2WN5aD3K/GuzJFjlLYrIgtrxdSdokoM391/kXJVNDY\nhsaQyqPbZYfIJnbbD1KYLVz3AwHpsz1kXPSqqRIaX2Bdfo10Ik2edgH9vg8PU9Jc\nKQ82Dp2rPBk40b+7JZHFe8Y=\n-----END PRIVATE KEY-----\n",
+  "client_email": "evofleet-updater@evofleet.iam.gserviceaccount.com",
+  "client_id": "112809199888731829106",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/evofleet-updater%40evofleet.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
