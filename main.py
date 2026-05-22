@@ -11,11 +11,13 @@ EVO_API_KEY = os.getenv("EVO_API_KEY")
 USDOT_NUMBER = os.getenv("USDOT_NUMBER")
 PROVIDER_TOKEN = os.getenv("PROVIDER_TOKEN")
 SPREADSHEET_NAME = os.getenv("SPREADSHEET_NAME", "Dock 2 Dock")
-SHEET_NAME = "Dock 2 Dock"
+SHEET_NAME = os.getenv("SHEET_NAME", "Dock 2 Dock")
 
 print("🚛 EVO ELD Odometer Updater ishga tushdi...")
+print(f"Spreadsheet: {SPREADSHEET_NAME}")
+print(f"Sheet: {SHEET_NAME}")
 
-# Google Credentials ni Environment dan olish
+# Google Credentials (Scopes bilan)
 def get_google_creds():
     creds_json = os.getenv("GOOGLE_CREDENTIALS")
     if not creds_json:
@@ -23,14 +25,19 @@ def get_google_creds():
         return None
     try:
         creds_dict = json.loads(creds_json)
-        return Credentials.from_service_account_info(creds_dict)
+        SCOPES = [
+            'https://www.googleapis.com/auth/spreadsheets',
+            'https://www.googleapis.com/auth/drive'
+        ]
+        creds = Credentials.from_service_account_info(creds_dict, scopes=SCOPES)
+        return creds
     except Exception as e:
-        print("❌ JSON parse xatosi:", e)
+        print("❌ Creds xatosi:", e)
         return None
 
 def get_eld_data():
     if not EVO_API_KEY or not USDOT_NUMBER or not PROVIDER_TOKEN:
-        print("❌ EVO_API_KEY, USDOT_NUMBER yoki PROVIDER_TOKEN sozlanmagan!")
+        print("❌ EVO ma'lumotlari to'liq emas!")
         return []
     
     url = f"https://read.evoeld.com/api/v2/units-by-usdot/{USDOT_NUMBER}"
@@ -47,7 +54,7 @@ def get_eld_data():
             print(f"✅ {len(units)} ta truck ma'lumoti olindi")
             return units
         else:
-            print(f"❌ API Error: {r.status_code} | {r.text}")
+            print(f"❌ API Error: {r.status_code}")
             return []
     except Exception as e:
         print("❌ Request xatosi:", e)
@@ -56,7 +63,6 @@ def get_eld_data():
 def update_odometer(units):
     creds = get_google_creds()
     if not creds:
-        print("❌ Google Credentials muammosi")
         return
     
     try:
@@ -70,13 +76,13 @@ def update_odometer(units):
             truck_no = str(unit.get("truck_number", "")).strip()
             odometer = unit.get("odometer") or unit.get("mileage") or unit.get("current_mileage")
             
-            if not truck_no or not odometer:
+            if not truck_no or odometer is None:
                 continue
                 
             for i, row in enumerate(data):
-                if len(row) > 1 and str(row[1]).strip() == truck_no:
+                if len(row) > 1 and str(row[1]).strip() == truck_no:   # B ustuni truck nom
                     try:
-                        sheet.update_cell(i+1, 7, int(odometer))  # G ustun (7)
+                        sheet.update_cell(i+1, 7, int(odometer))  # G ustuni (7)
                         updated += 1
                         print(f"✅ Updated: {truck_no} → {odometer}")
                     except:
@@ -94,4 +100,4 @@ if __name__ == "__main__":
         units = get_eld_data()
         if units:
             update_odometer(units)
-        time.sleep(60)  # har 60 sekundda yangilaydi
+        time.sleep(60)
