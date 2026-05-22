@@ -58,12 +58,9 @@ def update_odometer(units):
     try:
         client = gspread.authorize(creds)
         sheet = client.open_by_key(SPREADSHEET_ID).worksheet(SHEET_NAME)
-        
         data = sheet.get_all_values()
-        print(f"📋 Sheet'da {len(data)} ta qator topildi")
         
-        if len(data) <= 1:
-            print("⚠️ Sheet bo'sh yoki faqat header bor. Ma'lumot qo'shing!")
+        print(f"📋 Sheet'da {len(data)} ta qator topildi")
         
         updated = 0
         for unit in units:
@@ -78,10 +75,10 @@ def update_odometer(units):
             found = False
             for i, row in enumerate(data):
                 if len(row) > 1:
-                    sheet_truck = str(row[1]).strip()  # B ustuni (Truck Number)
+                    sheet_truck = str(row[1]).strip()
                     if sheet_truck == truck_no:
                         try:
-                            sheet.update_cell(i+1, 7, int(odometer))  # G ustuni
+                            sheet.update_cell(i + 1, 7, int(odometer))
                             updated += 1
                             print(f"✅ Updated: {truck_no} → {odometer}")
                             found = True
@@ -89,12 +86,12 @@ def update_odometer(units):
                         except Exception as e:
                             print(f"❌ Update xatosi: {e}")
             if not found:
-                print(f"⚠️ Truck topilmadi: {truck_no}")
+                print(f"⚠️ Truck topilmadi sheetda: {truck_no}")
                     
         print(f"📊 Jami {updated} ta truck yangilandi | {datetime.now().strftime('%H:%M:%S')}\n")
         
     except Exception as e:
-        print("❌ Sheet xato:", type(e).__name__, str(e))
+        print("❌ Sheet xato:", type(e).__name__, "-", str(e))
 
 # ===================== MAIN =====================
 if __name__ == "__main__":
