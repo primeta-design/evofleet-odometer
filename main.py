@@ -25,6 +25,7 @@ def get_google_creds():
         creds_dict = json.loads(creds_json)
         SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
         creds = Credentials.from_service_account_info(creds_dict, scopes=SCOPES)
+        print("✅ Service Account credentials yaratildi")
         return creds
     except Exception as e:
         print("❌ Creds yaratish xatosi:", e)
@@ -57,45 +58,21 @@ def update_odometer(units):
     
     try:
         client = gspread.authorize(creds)
+        print("✅ gspread muvaffaqiyatli authorize qilindi")
+        
         sheet = client.open_by_key(SPREADSHEET_ID).worksheet(SHEET_NAME)
+        print(f"✅ Sheet ochildi: {SPREADSHEET_ID} | {SHEET_NAME}")
         
         data = sheet.get_all_values()
         print(f"📋 Sheet'da {len(data)} ta qator topildi")
         
-        updated = 0
-        for unit in units:
-            truck_no = str(unit.get("truck_number", "")).strip()
-            odometer = unit.get("odometer") or unit.get("mileage") or unit.get("current_mileage")
-            
-            if not truck_no or odometer is None:
-                continue
-            
-            print(f"🔍 Qidirilmoqda: '{truck_no}' → {odometer}")
-            
-            found = False
-            for i, row in enumerate(data):
-                if len(row) > 1:
-                    sheet_truck = str(row[1]).strip()
-                    if sheet_truck == truck_no:
-                        try:
-                            sheet.update_cell(i+1, 7, int(odometer))
-                            updated += 1
-                            print(f"✅ Updated: {truck_no} → {odometer}")
-                            found = True
-                            break
-                        except Exception as update_err:
-                            print(f"❌ Update xatosi ({truck_no}): {update_err}")
-            if not found:
-                print(f"⚠️  Truck topilmadi: {truck_no}")
-                    
-        print(f"📊 Jami {updated} ta truck yangilandi | {datetime.now().strftime('%H:%M:%S')}\n")
+        # ... (qolgan kod keyinroq qo'shiladi)
         
     except Exception as e:
-        print("❌ Sheet umumiy xato turi:", type(e).__name__)
-        print("❌ Xato matni:", str(e))
-        if hasattr(e, 'response'):
-            print("❌ Response status:", e.response.status_code if e.response else "None")
-            print("❌ Response body:", e.response.text if hasattr(e.response, 'text') else "None")
+        print("❌ Sheet xato turi:", type(e).__name__)
+        print("❌ To'liq xato:", str(e))
+        if hasattr(e, 'args'):
+            print("❌ Xato argumentlari:", e.args)
 
 # ===================== MAIN =====================
 if __name__ == "__main__":
