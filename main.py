@@ -10,8 +10,9 @@ import json
 EVO_API_KEY = os.getenv("EVO_API_KEY")
 USDOT_NUMBER = os.getenv("USDOT_NUMBER")
 PROVIDER_TOKEN = os.getenv("PROVIDER_TOKEN")
-SPREADSHEET_NAME = os.getenv("SPREADSHEET_NAME", "Dock 2 Dock")
-SHEET_NAME = os.getenv("SHEET_NAME", "Dock 2 Dock")
+
+SPREADSHEET_ID = "1EszHInPi3_8hKIU32EpyxdIdfaKNa90ZZlMuf0xtiH8"
+SHEET_NAME = "Dock 2 Dock"
 
 print("🚛 EVO ELD Odometer Updater ishga tushdi...")
 
@@ -22,11 +23,11 @@ def get_google_creds():
         return None
     try:
         creds_dict = json.loads(creds_json)
-        SCOPES = ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive']
+        SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
         creds = Credentials.from_service_account_info(creds_dict, scopes=SCOPES)
         return creds
     except Exception as e:
-        print("❌ Creds xatosi:", e)
+        print("❌ Creds yaratish xatosi:", e)
         return None
 
 def get_eld_data():
@@ -56,12 +57,12 @@ def update_odometer(units):
     
     try:
         client = gspread.authorize(creds)
-        sheet = client.open(SPREADSHEET_NAME).worksheet(SHEET_NAME)
+        sheet = client.open_by_key(SPREADSHEET_ID).worksheet(SHEET_NAME)
+        
         data = sheet.get_all_values()
-        
         print(f"📋 Sheet'da {len(data)} ta qator topildi")
-        updated = 0
         
+        updated = 0
         for unit in units:
             truck_no = str(unit.get("truck_number", "")).strip()
             odometer = unit.get("odometer") or unit.get("mileage") or unit.get("current_mileage")
@@ -69,7 +70,7 @@ def update_odometer(units):
             if not truck_no or odometer is None:
                 continue
             
-            print(f"🔍 Qidirilmoqda: {truck_no} → {odometer} miles")
+            print(f"🔍 Qidirilmoqda: '{truck_no}' → {odometer}")
             
             found = False
             for i, row in enumerate(data):
@@ -82,15 +83,19 @@ def update_odometer(units):
                             print(f"✅ Updated: {truck_no} → {odometer}")
                             found = True
                             break
-                        except Exception as e:
-                            print(f"❌ Update xatosi: {e}")
+                        except Exception as update_err:
+                            print(f"❌ Update xatosi ({truck_no}): {update_err}")
             if not found:
                 print(f"⚠️  Truck topilmadi: {truck_no}")
                     
         print(f"📊 Jami {updated} ta truck yangilandi | {datetime.now().strftime('%H:%M:%S')}\n")
         
     except Exception as e:
-        print("❌ Sheet umumiy xato:", e)
+        print("❌ Sheet umumiy xato turi:", type(e).__name__)
+        print("❌ Xato matni:", str(e))
+        if hasattr(e, 'response'):
+            print("❌ Response status:", e.response.status_code if e.response else "None")
+            print("❌ Response body:", e.response.text if hasattr(e.response, 'text') else "None")
 
 # ===================== MAIN =====================
 if __name__ == "__main__":
