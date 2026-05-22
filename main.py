@@ -1,42 +1,97 @@
 import requests
-import os
+import gspread
+from google.oauth2.service_account import Credentials
+from datetime import datetime
 import time
+import os
+import json
 
+# ================== SOZLAMALAR ==================
 EVO_API_KEY = os.getenv("EVO_API_KEY")
 USDOT_NUMBER = os.getenv("USDOT_NUMBER")
 PROVIDER_TOKEN = os.getenv("PROVIDER_TOKEN")
+SPREADSHEET_NAME = os.getenv("SPREADSHEET_NAME", "Dock 2 Dock")
+SHEET_NAME = "Dock 2 Dock"
 
-print("🚛 Test mode v2 ishga tushdi...")
-print(f"USDOT: {USDOT_NUMBER}")
-print(f"API Key uzunligi: {len(EVO_API_KEY) if EVO_API_KEY else 0}")
-print(f"Provider Token uzunligi: {len(PROVIDER_TOKEN) if PROVIDER_TOKEN else 0}")
+print("🚛 EVO ELD Odometer Updater ishga tushdi...")
 
-if __name__ == "__main__":
-    url = f"https://read.evoeld.com/api/v2/units-by-usdot/{USDOT_NUMBER}"
+# Google Credentials ni Environment dan olish
+def get_google_creds():
+    creds_json = os.getenv("GOOGLE_CREDENTIALS")
+    if not creds_json:
+        print("❌ GOOGLE_CREDENTIALS topilmadi!")
+        return None
+    try:
+        creds_dict = json.loads(creds_json)
+        return Credentials.from_service_account_info(creds_dict)
+    except Exception as e:
+        print("❌ JSON parse xatosi:", e)
+        return None
+
+def get_eld_data():
+    if not EVO_API_KEY or not USDOT_NUMBER or not PROVIDER_TOKEN:
+        print("❌ EVO_API_KEY, USDOT_NUMBER yoki PROVIDER_TOKEN sozlanmagan!")
+        return []
     
+    url = f"https://read.evoeld.com/api/v2/units-by-usdot/{USDOT_NUMBER}"
     headers = {
         "Content-Type": "application/json",
         "x-api-key": EVO_API_KEY,
         "provider-token": PROVIDER_TOKEN
     }
     
-    print(f"URL: {url}")
-    print("Headers qo'shildi: x-api-key + provider-token")
-    
     try:
         r = requests.get(url, headers=headers, timeout=30)
-        print(f"Status Code: {r.status_code}")
-        
         if r.status_code == 200:
-            data = r.json()
-            units = data.get("units", [])
-            print(f"✅ Muvaffaqiyat! {len(units)} ta truck topildi")
-            if units:
-                print("Birinchi truck:", units[0])
+            units = r.json().get("units", [])
+            print(f"✅ {len(units)} ta truck ma'lumoti olindi")
+            return units
         else:
-            print(f"Response: {r.text}")
-            print("\n💡 Maslahat: USDOT yoki tokenlarni qayta tekshiring")
+            print(f"❌ API Error: {r.status_code} | {r.text}")
+            return []
     except Exception as e:
-        print("Xato:", str(e))
+        print("❌ Request xatosi:", e)
+        return []
+
+def update_odometer(units):
+    creds = get_google_creds()
+    if not creds:
+        print("❌ Google Credentials muammosi")
+        return
     
-    time.sleep(30)
+    try:
+        client = gspread.authorize(creds)
+        sheet = client.open(SPREADSHEET_NAME).worksheet(SHEET_NAME)
+        
+        data = sheet.get_all_values()
+        updated = 0
+        
+        for unit in units:
+            truck_no = str(unit.get("truck_number", "")).strip()
+            odometer = unit.get("odometer") or unit.get("mileage") or unit.get("current_mileage")
+            
+            if not truck_no or not odometer:
+                continue
+                
+            for i, row in enumerate(data):
+                if len(row) > 1 and str(row[1]).strip() == truck_no:
+                    try:
+                        sheet.update_cell(i+1, 7, int(odometer))  # G ustun (7)
+                        updated += 1
+                        print(f"✅ Updated: {truck_no} → {odometer}")
+                    except:
+                        pass
+                    break
+                    
+        print(f"📊 Jami {updated} ta truck yangilandi | {datetime.now().strftime('%H:%M:%S')}")
+        
+    except Exception as e:
+        print("❌ Sheet yangilashda xato:", e)
+
+# ===================== MAIN =====================
+if __name__ == "__main__":
+    while True:
+        units = get_eld_data()
+        if units:
+            update_odometer(units)
+        time.sleep(60)  # har 60 sekundda yangilaydi
