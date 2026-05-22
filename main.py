@@ -14,10 +14,7 @@ SPREADSHEET_NAME = os.getenv("SPREADSHEET_NAME", "Dock 2 Dock")
 SHEET_NAME = os.getenv("SHEET_NAME", "Dock 2 Dock")
 
 print("🚛 EVO ELD Odometer Updater ishga tushdi...")
-print(f"Spreadsheet: {SPREADSHEET_NAME}")
-print(f"Sheet: {SHEET_NAME}")
 
-# Google Credentials (Scopes bilan)
 def get_google_creds():
     creds_json = os.getenv("GOOGLE_CREDENTIALS")
     if not creds_json:
@@ -25,10 +22,7 @@ def get_google_creds():
         return None
     try:
         creds_dict = json.loads(creds_json)
-        SCOPES = [
-            'https://www.googleapis.com/auth/spreadsheets',
-            'https://www.googleapis.com/auth/drive'
-        ]
+        SCOPES = ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive']
         creds = Credentials.from_service_account_info(creds_dict, scopes=SCOPES)
         return creds
     except Exception as e:
@@ -36,17 +30,12 @@ def get_google_creds():
         return None
 
 def get_eld_data():
-    if not EVO_API_KEY or not USDOT_NUMBER or not PROVIDER_TOKEN:
-        print("❌ EVO ma'lumotlari to'liq emas!")
-        return []
-    
     url = f"https://read.evoeld.com/api/v2/units-by-usdot/{USDOT_NUMBER}"
     headers = {
         "Content-Type": "application/json",
         "x-api-key": EVO_API_KEY,
         "provider-token": PROVIDER_TOKEN
     }
-    
     try:
         r = requests.get(url, headers=headers, timeout=30)
         if r.status_code == 200:
@@ -68,8 +57,9 @@ def update_odometer(units):
     try:
         client = gspread.authorize(creds)
         sheet = client.open(SPREADSHEET_NAME).worksheet(SHEET_NAME)
-        
         data = sheet.get_all_values()
+        
+        print(f"📋 Sheet'da {len(data)} ta qator topildi")
         updated = 0
         
         for unit in units:
@@ -78,21 +68,29 @@ def update_odometer(units):
             
             if not truck_no or odometer is None:
                 continue
-                
+            
+            print(f"🔍 Qidirilmoqda: {truck_no} → {odometer} miles")
+            
+            found = False
             for i, row in enumerate(data):
-                if len(row) > 1 and str(row[1]).strip() == truck_no:   # B ustuni truck nom
-                    try:
-                        sheet.update_cell(i+1, 7, int(odometer))  # G ustuni (7)
-                        updated += 1
-                        print(f"✅ Updated: {truck_no} → {odometer}")
-                    except:
-                        pass
-                    break
+                if len(row) > 1:
+                    sheet_truck = str(row[1]).strip()
+                    if sheet_truck == truck_no:
+                        try:
+                            sheet.update_cell(i+1, 7, int(odometer))
+                            updated += 1
+                            print(f"✅ Updated: {truck_no} → {odometer}")
+                            found = True
+                            break
+                        except Exception as e:
+                            print(f"❌ Update xatosi: {e}")
+            if not found:
+                print(f"⚠️  Truck topilmadi: {truck_no}")
                     
-        print(f"📊 Jami {updated} ta truck yangilandi | {datetime.now().strftime('%H:%M:%S')}")
+        print(f"📊 Jami {updated} ta truck yangilandi | {datetime.now().strftime('%H:%M:%S')}\n")
         
     except Exception as e:
-        print("❌ Sheet yangilashda xato:", e)
+        print("❌ Sheet umumiy xato:", e)
 
 # ===================== MAIN =====================
 if __name__ == "__main__":
